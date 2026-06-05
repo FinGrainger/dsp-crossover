@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, sosfreqz
+import soundfile as sf
 
 
 #Frequency axis - 20Hz to 20kHz
@@ -43,3 +44,25 @@ combined = 20 * np.log10(np.abs(np.abs(h_lp) + np.abs(h_hp)))
 plt.plot(w, combined, label='Combined', linestyle='--', color='green')
 
 plt.show()
+
+# Load audio file
+audio, file_sr = sf.read('jungler.wav')
+if audio.ndim == 2:
+    audio = audio[:, 0]
+
+# Resample warning
+if file_sr != fs:
+    print(f"Warning: file sample rate ({file_sr}Hz) doesn't match fs ({fs}Hz)")
+
+# Apply filters to audio
+from scipy.signal import sosfilt
+sub_out = sosfilt(lp_sos, audio)
+tops_out = sosfilt(hp_sos, audio)
+
+# Save outputs
+
+sf.write('sub_out.wav', sub_out, file_sr)
+sf.write('tops_out.wav', tops_out, file_sr)
+
+
+print("Done - sub_out.wav and tops_out.wav saved")
