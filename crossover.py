@@ -38,4 +38,8 @@ plt.ylim(-60, 5)
 plt.xlim(20, 20000)
 plt.axvline(x=fc, color='grey', linestyle='--', label=f'Crossover: {fc}Hz')
 plt.legend()
+
+combined = 20 * np.log10(np.abs(np.abs(h_lp) + np.abs(h_hp)))
+plt.plot(w, combined, label='Combined', linestyle='--', color='green')
+
 plt.show()
