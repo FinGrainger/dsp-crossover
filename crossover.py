@@ -13,7 +13,7 @@ from scipy.signal import welch
 
 f = np.linspace(20, 20000, 1000) #Frequency axis - 20Hz to 20kHz
 fs = 44100 #Sampling rate
-fc = 900 #Crossover frequency 
+fc = 90 #Crossover frequency 
 
 #Filter Design - x order butterworth
 def butterworth_crossover(fc, order, fs):
@@ -154,11 +154,19 @@ def plot_spectrum(audio, file_fs,lp_sos=None, hp_sos=None, title='audio spectrum
     plt.show()
 
 
-#lp_sos, hp_sos = terminal_filterchoice()
-#plot_response(lp_sos, hp_sos)
-lp, hp = filter_choice()
-audio, file_fs = audio_process(filename)
-plot_spectrum(audio, file_fs, lp, hp)
+def plot_graph():
+    lp, hp = filter_choice()
+    audio, file_fs = audio_process(filename)
+    plot_spectrum(audio, file_fs, lp, hp)
+    
+
+yn = ''
+
+while yn != 'n':
+    print('Do you want to plot a graph? (y/n)')
+    yn = input()
+    plot_graph()
+    
 
 #h_hp , h_lp = butterworth_crossover(fc, 4, fs)
 
