@@ -1,12 +1,11 @@
 # dsp-crossover
 
-A Python DSP tool for designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops)
-Built to understand DSP crossover theory before implementing on hardware
+A Python DSP tool for designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops), Built to understand DSP crossover theory before implementing on hardware.
 
 ## What it does
 - Designs Butterworth and Linkwitz-Riley crossover filters at variable orders
 - Plots filter frequency response on a flat curve
-- Analyses the frequency spectrum of an audio file (FFT or Welch method)
+- Analyses the frequency spectrum of an audio file (Welch's method or single FFT)
 - Shows filter responses on frequency spectrum
 - Saves frequency response graph
 - Applies filters to audio and save as .wav files

@@ -6,8 +6,6 @@ from scipy.signal import sosfilt
 from scipy.signal import welch
 import matplotlib.ticker as ticker
 
-# Add 3rd filter for tweeter/mids
-
 def main():
     
     filename = 'jungler.wav' #Temp file
@@ -40,7 +38,7 @@ def main():
 def butterworth_crossover(fc, order, fs):
     Nyquist = fs/2
     Wn = fc / Nyquist #Normalised cutoff frequency
-    lp = butter(order, Wn, btype ='low', output ='sos')
+    lp = butter(order, Wn, btype ='low', output ='sos') #Second order sections used for improved numerical stability chance of rounding errors
     hp = butter(order, Wn, btype='high', output='sos')
     return lp, hp
 
@@ -82,19 +80,23 @@ def filter_choice(fc, fs):
         
 # - Plot response on flat curve
 def plot_response(lp_sos, hp_sos, fc, fs):
-    w, h_lp = sosfreqz(lp_sos, worN=1000, fs=fs)
-    w, h_hp = sosfreqz(hp_sos, worN=1000, fs=fs)
+   
+    w, h_lp = sosfreqz(lp_sos, worN=1000, fs=fs) #Computes the frequency response
+    w, h_hp = sosfreqz(hp_sos, worN=1000, fs=fs) #Returns w (array of frequency values), h (array of complex numbers)
 
-    #Convert to dB
-    lp_db = 20 * np.log10(np.abs(h_lp))
-    hp_db = 20 * np.log10(np.abs(h_hp))
-
+    lp_db = 20 * np.log10(np.abs(h_lp)) #Converts complex numbers to magnitude (dB)
+    hp_db = 20 * np.log10(np.abs(h_hp)) 
+    combined = 20 * np.log10(np.abs(np.abs(h_lp) + np.abs(h_hp))) #Combined output of 2 signals (ideally flat for PA use)
+    
     plt.figure(figsize=(10,6))
+   
     plt.plot(w, lp_db, label='Subwoofer (low-pass)')
     plt.plot(w, hp_db, label='Tops (high-pass)')
+    plt.plot(w, combined, label='Combined', linestyle='--', color='green')
+   
     plt.xscale('log')
     plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Amplitude')
+    plt.ylabel('Amplitude (dB)')
     plt.title('Crossover Filter Response')
     plt.grid(True, which='both')
     plt.ylim(-60, 5)
@@ -102,24 +104,21 @@ def plot_response(lp_sos, hp_sos, fc, fs):
     plt.axvline(x=fc, color='grey', linestyle='--', label=f'Crossover: {fc}Hz')
     plt.axhline(y=-6, color='red', linestyle=':', label='-6dB reference')
     plt.legend()
-    combined = 20 * np.log10(np.abs(np.abs(h_lp) + np.abs(h_hp)))
-    plt.plot(w, combined, label='Combined', linestyle='--', color='green')
+    
     save_graph(plt.gcf())
     plt.show()
 
 # - Audio file filter processing
-
 def audio_process(filename):
     audio, file_fs = sf.read(filename) # Load audio file
-    if audio.ndim == 2:
-        audio = audio[:, 0] # Turn mono (duplicate left ear)    
+    if audio.ndim == 2: #Checks if sound is stereo
+        audio = audio[:, 0] # Convert to mono (discard right channel)    
     return audio, file_fs
 
 # - Plots each signals response (filtered/unfiltered)
 def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
     
-    def welch_choice():
-
+    def welch_choice(): # Stores whether user wants to use single FFT or Welch method 
         print('Do you want to use Welch method? (y/n)')
         yn = input()
         if yn == 'y':
@@ -129,20 +128,20 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
             use_welch = False
         return use_welch
     
-    use_welch = welch_choice()
-    if use_welch: 
-        _, unfiltered_power = welch(audio, fs=file_fs, nperseg=4096)
-        raw_max = 10 * np.log10(np.max(unfiltered_power))
+    use_welch = welch_choice() #True if Welch's method, False if single FFT
+    if use_welch:  #Gets raw_max value from unfiltered audio, preventing future normalisation errors from calculating inside functions
+        _, unfiltered_power = welch(audio, fs=file_fs, nperseg=4096) 
+        raw_max = 10 * np.log10(np.max(unfiltered_power)) #Returns raw_max using Welch's method
     else:
-        raw_max = 20 * np.log10(np.max(np.abs(np.fft.rfft(audio))))
+        raw_max = 20 * np.log10(np.max(np.abs(np.fft.rfft(audio)))) #Returns raw_max using a single FFT
 
     def plot_filter_spectrum(use_welch, filter_color, signal_label, filter=None):
         if filter is not None:
             filtered_audio = sosfilt(filter, audio) #Applies the filter to the signal
         else:
             filtered_audio = audio
-        if use_welch: #Checks whether welch or FFT method
-            spectrum_freqs, spectrum_power = welch(filtered_audio, fs=file_fs, nperseg=4096) #Applies the welch method (reduces noice/makes signal smoother)
+        if use_welch: #Checks whether Welch's method or single FFT
+            spectrum_freqs, spectrum_power = welch(filtered_audio, fs=file_fs, nperseg=4096) #Applies the welch method (reduces noise/makes signal smoother)
             spectrum_mag = 10*np.log10(spectrum_power) #Converting to magnitude (10log10 due to welch method using power)
         else:
             spectrum_result = np.fft.rfft(filtered_audio)  #Applies real FFT (discards negative values), returns a complex array of frequencies
@@ -168,8 +167,10 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
             plot_filter_spectrum(use_welch, 'blue', 'HP Audio', hp_sos)
     
     plt.figure(figsize=(10,6))     
-    plot_filter_spectrum(use_welch, 'green', 'Unfiltered Audio')
-    plot_filters(use_welch, lp_sos, hp_sos)       
+    
+    plot_filter_spectrum(use_welch, 'green', 'Unfiltered Audio') #Plots unfiltered audio
+    plot_filters(use_welch, lp_sos, hp_sos) #Plots any filtered audio
+    
     plt.xscale('log')
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (dB)')
@@ -198,13 +199,13 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
 
 # - Plots the final frequency response
 def plot_graph(fc, lp, hp, filename):
-    audio, file_fs = audio_process(filename)
-    plot_spectrum(audio, file_fs, fc, lp, hp)
+    audio, file_fs = audio_process(filename) #Gets the audio signal and sampling rate
+    plot_spectrum(audio, file_fs, fc, lp, hp) 
     
 # - Saves filtered audio
 def audio_saving(filter, audio, filter_type, file_fs):
-    sample = sosfilt(filter, audio)
-    sf.write(f'Saved_Audio/{filter_type}.wav', sample, file_fs)
+    sample = sosfilt(filter, audio) #Applies filter to signal
+    sf.write(f'Saved_Audio/{filter_type}.wav', sample, file_fs) #Saves the filtered audio
 
 def save_graph(f):
     print ('Do you want to save graph (y/n)')
@@ -212,6 +213,6 @@ def save_graph(f):
     if yn == ('y'):
         print("Name: ")
         name = input()
-        f.savefig(f'Saved_Graphs/{name}.png')
+        f.savefig(f'Saved_Graphs/{name}.png') #saves figure as .png
     
 main()
