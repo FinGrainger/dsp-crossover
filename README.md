@@ -1,13 +1,15 @@
 # dsp-crossover
 
-A Python DSP tool for a designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops)
+A Python DSP tool for designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops)
+Built to understand DSP crossover theory before implementing on hardware
 
 ## What it does
-- Designs Butterworth and Linkwitz-Riley crossover filters (user defined)
+- Designs Butterworth and Linkwitz-Riley crossover filters at variable orders
 - Plots filter frequency response on a flat curve
 - Analyses the frequency spectrum of an audio file (FFT or Welch method)
-- Show filter responses on audio spectrum
-- Apply filters to audio and export as .wav files
+- Shows filter responses on frequency spectrum
+- Saves frequency response graph
+- Applies filters to audio and save as .wav files
 
 ## Filter types
 - Butterworth - Flat passband, -3dB at crossover
@@ -24,7 +26,7 @@ A Python DSP tool for a designing and analysing crossover filters, used for a DI
 ```bash
 python crossover.py
 ```
-Follow Terminal Prompts
+Follow terminal prompts
 
 ## Project context
 Part of a DIY PA build  
@@ -32,9 +34,15 @@ Part of a DIY PA build
 - 2x 8" mid-woofer tops.
 - 2x tweeter TBD
 - Target crossover  80-100Hz
-Python DSP crossover used before the amps to split frequencies or boost/dip
+Python DSP crossover used before the amps to split into frequency bands
+
+## Limitations
+- Only 2 way crossover, no mid band support
+- Audio saving is only allowed with .wav files
+- No input validation on terminal prompts
 
 ## Planned
 - 3 way crossover for sub/mid/tweeter
 - Real time animated spectrum display
-- Microcontroller implimentation
+- Microcontroller implementation using CMSIS-DSP on ARM Cortex-M 
+- CamillaDSP export for Raspberry Pi deployment

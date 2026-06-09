@@ -20,7 +20,7 @@ def main():
         fc = int(input()) #Crossover frequency 
 
         print('1 - Process Audio')
-        print('2 - Frossover Filter Response')
+        print('2 - Crossover Filter Response')
         choice = input()
         lp, hp = filter_choice(fc, fs)
         if choice == '1':
@@ -115,8 +115,7 @@ def audio_process(filename):
         audio = audio[:, 0] # Turn mono (duplicate left ear)    
     return audio, file_fs
 
-
-
+# - Plots each signals response (filtered/unfiltered)
 def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
     
     def welch_choice():
@@ -130,8 +129,8 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
             use_welch = False
         return use_welch
     
-    use_welch = welch_choice();
-    if use_welch:
+    use_welch = welch_choice()
+    if use_welch: 
         _, unfiltered_power = welch(audio, fs=file_fs, nperseg=4096)
         raw_max = 10 * np.log10(np.max(unfiltered_power))
     else:
@@ -151,22 +150,7 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
             spectrum_mag = 20*np.log10(np.abs(spectrum_result)) #Converting to magnitude
         spectrum_mag = spectrum_mag - raw_max #Normalising (loudest point at 0dB)
         plt.plot(spectrum_freqs, spectrum_mag, label=signal_label, color=filter_color)    
-            
-    def get_spectrum(use_welch):
-        if use_welch:
-            spectrum_freqs, spectrum_power = welch(audio, fs=file_fs, nperseg=4096)
-            spectrum_mag = 10*np.log10(spectrum_power)
-        else:
-            spectrum_result = np.fft.rfft(audio)
-            spectrum_freqs = np.fft.rfftfreq(len(audio), d=1/file_fs)
-            spectrum_mag = 20*np.log10(np.abs(spectrum_result))
-        raw_max = np.max(spectrum_mag)
-        spectrum_mag = spectrum_mag-raw_max
-        return spectrum_freqs, spectrum_mag, raw_max
-
-
-   
-    
+               
     def plot_filters(use_welch, lp_sos=None, hp_sos=None,):
 
         if lp_sos is not None: #Checks if none
@@ -183,11 +167,9 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
 
             plot_filter_spectrum(use_welch, 'blue', 'HP Audio', hp_sos)
     
-    plt.figure(figsize=(10,6))  
+    plt.figure(figsize=(10,6))     
     plot_filter_spectrum(use_welch, 'green', 'Unfiltered Audio')
     plot_filters(use_welch, lp_sos, hp_sos)       
-    
-    
     plt.xscale('log')
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Amplitude (dB)')
@@ -196,14 +178,12 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
     plt.ylim(-120, 5)
     plt.xlim(20, 20000)
     plt.axvline(x=fc, color='grey', linestyle='--', label=f'Crossover: {fc}Hz')
-   
-    
     ax = plt.gca()
     ax.set_xticks([20, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000])
-    ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
-        
-    save_graph(plt.gcf())
-        
+    ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())  
+    plt.legend()    
+
+    save_graph(plt.gcf())   
     print('Do you want to save audio (y/n)')
     yn = input()
     if yn == 'y':
@@ -214,7 +194,6 @@ def plot_spectrum(audio, file_fs, fc, lp_sos=None, hp_sos=None,):
             audio_saving(hp_sos, audio, 'High Pass Sample', file_fs)
 
 
-    plt.legend()
     plt.show() 
 
 # - Plots the final frequency response
@@ -225,7 +204,7 @@ def plot_graph(fc, lp, hp, filename):
 # - Saves filtered audio
 def audio_saving(filter, audio, filter_type, file_fs):
     sample = sosfilt(filter, audio)
-    sf.write(f'{filter_type}.wav', sample, file_fs)
+    sf.write(f'Saved_Audio/{filter_type}.wav', sample, file_fs)
 
 def save_graph(f):
     print ('Do you want to save graph (y/n)')
@@ -233,6 +212,6 @@ def save_graph(f):
     if yn == ('y'):
         print("Name: ")
         name = input()
-        f.savefig(f'{name}.png')
+        f.savefig(f'Saved_Graphs/{name}.png')
     
 main()
