@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 
 def main():
     
-    filename = 'jungler.wav' #Temp file
+    filename = 'Sinesweep.wav' #Temp file
     new_graph = True
     while new_graph is True:
 
@@ -103,12 +103,15 @@ def plot_response(lp_sos, hp_sos, fc, fs):
     plt.xlim(20, 20000)
     plt.axvline(x=fc, color='grey', linestyle='--', label=f'Crossover: {fc}Hz')
     plt.axhline(y=-6, color='red', linestyle=':', label='-6dB reference')
+    ax = plt.gca()
+    ax.set_xticks([20, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000])
+    ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())  
     plt.legend()
     
     save_graph(plt.gcf())
     plt.show()
 
-# - Audio file filter processing
+# - Audio file processing
 def audio_process(filename):
     audio, file_fs = sf.read(filename) # Load audio file
     if audio.ndim == 2: #Checks if sound is stereo
