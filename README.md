@@ -1,6 +1,6 @@
 # dsp-crossover
 
-A Python DSP tool for designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops), Built to understand DSP crossover theory before implementing on hardware.
+A Python DSP tool for designing and analysing crossover filters, used for a DIY PA system (1 sub, 2 tops), built to understand DSP crossover theory before implementing on hardware.
 
 ## What it does
 - Designs Butterworth and Linkwitz-Riley crossover filters at variable orders

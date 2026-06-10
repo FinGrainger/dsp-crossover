@@ -12,7 +12,7 @@ def main():
     new_graph = True
     while new_graph is True:
 
-        fs = 44100 #Sampling rate
+        fs = 44100 #Sampling rate 
 
         print('Choose Crossover Frequency:')
         fc = int(input()) #Crossover frequency 
